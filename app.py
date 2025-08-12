@@ -162,32 +162,38 @@ def verify_email(token):
 # LOGIN ROUTE
 # =============================
 @app.route('/login', methods=['GET', 'POST'])
-@limiter.limit("5 per 15 minutes")
+@limiter.limit("10 per 15 minutes")
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        try:
+            email = request.form['email']
+            password = request.form['password']
 
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-        user = cursor.fetchone()
-        cursor.close()
-        conn.close()
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+            user = cursor.fetchone()
+            cursor.close()
+            conn.close()
 
-        if user and bcrypt.check_password_hash(user['password_hash'], password):
-            if not (user['is_verified'] or user['is_admin']):
-                flash('Please verify your email before logging in.', 'warning')
-                return redirect(url_for('login'))
+            if user and bcrypt.check_password_hash(user['password_hash'], password):
+                if not (user['is_verified'] or user['is_admin']):
+                    flash('Please verify your email before logging in.', 'warning')
+                    return redirect(url_for('login'))
 
-            session['user_id'] = user['id']
-            session['user_email'] = user['email']
-            session['name'] = user['name']
-            session['is_admin'] = user['is_admin']
-            return redirect(url_for('dashboard'))
-        else:
-            logging.warning(f"Failed login attempt for email: {email}")
-            flash('Invalid email or password', 'danger')
+                session['user_id'] = user['id']
+                session['user_email'] = user['email']
+                session['name'] = user['name']
+                session['is_admin'] = user['is_admin']
+                return redirect(url_for('dashboard'))
+            else:
+                logging.warning(f"Failed login attempt for email: {email}")
+                flash('Invalid email or password', 'danger')
+        except Exception as e:
+            import traceback
+            logging.error(f"Exception during login for email {request.form.get('email')}: {str(e)}")
+            logging.error(traceback.format_exc())
+            flash('An internal error occurred. Please try again later.', 'danger')
 
     return render_template('login.html')
 
