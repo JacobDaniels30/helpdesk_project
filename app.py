@@ -31,13 +31,15 @@ logging.basicConfig(
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
-    SESSION_COOKIE_SECURE=False  # Change to True in production with HTTPS
+    SESSION_COOKIE_SECURE=os.environ.get('FLASK_ENV') == 'production'
 )
 
 ALLOWED_TAGS = ['b', 'i', 'u', 'a']
 ALLOWED_ATTRIBUTES = {'a': ['href', 'title']}
 
-# Use environment variable for secret key
+# Use environment variable for secret key - enforce in production
+if os.environ.get('FLASK_ENV') == 'production' and not os.environ.get("SECRET_KEY"):
+    raise ValueError("SECRET_KEY environment variable must be set in production")
 app.secret_key = os.environ.get("SECRET_KEY", "supersecretkey")
 
 # Configure Flask-Limiter with in-memory storage (no Redis required)
