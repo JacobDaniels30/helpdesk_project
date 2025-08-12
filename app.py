@@ -27,13 +27,15 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] %(message)s'
 )
 
-# Enhanced session configuration for better security and debugging
+# Enhanced session configuration for production deployment
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
     SESSION_COOKIE_SECURE=os.environ.get('FLASK_ENV') == 'production',
     SESSION_COOKIE_NAME='helpdesk_session',
-    PERMANENT_SESSION_LIFETIME=timedelta(hours=24)
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=24),
+    SESSION_COOKIE_DOMAIN=None,  # Allow for subdomain handling
+    SESSION_COOKIE_PATH='/'
 )
 
 ALLOWED_TAGS = ['b', 'i', 'u', 'a']
