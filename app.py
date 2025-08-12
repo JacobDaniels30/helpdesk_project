@@ -27,11 +27,13 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] %(message)s'
 )
 
-# Secure session cookie settings
+# Enhanced session configuration for better security and debugging
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
-    SESSION_COOKIE_SECURE=os.environ.get('FLASK_ENV') == 'production'
+    SESSION_COOKIE_SECURE=os.environ.get('FLASK_ENV') == 'production',
+    SESSION_COOKIE_NAME='helpdesk_session',
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=24)
 )
 
 ALLOWED_TAGS = ['b', 'i', 'u', 'a']
@@ -41,6 +43,9 @@ ALLOWED_ATTRIBUTES = {'a': ['href', 'title']}
 if os.environ.get('FLASK_ENV') == 'production' and not os.environ.get("SECRET_KEY"):
     raise ValueError("SECRET_KEY environment variable must be set in production")
 app.secret_key = os.environ.get("SECRET_KEY", "supersecretkey")
+
+# Ensure session is permanent
+app.config['SESSION_PERMANENT'] = True
 
 # Configure Flask-Limiter with in-memory storage (no Redis required)
 limiter = Limiter(
@@ -247,6 +252,9 @@ def login():
                 session['name'] = user['name']
                 session['is_admin'] = user['is_admin']
                 session['session_token'] = session_token
+                
+                # Debug logging for session
+                logging.info(f"Login successful for user: {email}, user_id: {user['id']}, is_admin: {user['is_admin']}")
                 
                 cursor.close()
                 conn.close()
