@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Add the admin-modern.css stylesheet -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-modern.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<div class="admin-container">
+    <!-- Modern Header -->
+    <header class="admin-header">
+        <h1 class="admin-title">
+            <i class="fas fa-edit"></i>
+            Edit Ticket
+        </h1>
+        <div>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </header>
+
+    <!-- Edit Ticket Form Section -->
+    <section class="tickets-section">
+        <div class="ticket-card" style="max-width: 800px; margin: 0 auto;">
+            <div class="ticket-header">
+                <h3 class="ticket-title">
+                    <i class="fas fa-ticket-alt"></i>
+                    Ticket #{{ ticket.id }} - {{ ticket.title }}
+                </h3>
+            </div>
+
+            <form method="post" action="{{ url_for('edit_ticket', ticket_id=ticket.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="title">
+                            <i class="fas fa-heading"></i>
+                            Title
+                        </label>
+                        <input type="text" id="title" name="title" value="{{ ticket.title }}" 
+                               class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="urgency">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Priority
+                        </label>
+                        <select id="urgency" name="urgency" class="form-control" required>
+                            <option value="low" {% if ticket.urgency == 'low' %}selected{% endif %} 
+                                    class="badge-urgency-low">Low</option>
+                            <option value="medium" {% if ticket.urgency == 'medium' or not ticket.urgency %}selected{% endif %} 
+                                    class="badge-urgency-medium">Medium</option>
+                            <option value="high" {% if ticket.urgency == 'high' %}selected{% endif %} 
+                                    class="badge-urgency-high">High</option>
+                            <option value="urgent" {% if ticket.urgency == 'urgent' %}selected{% endif %} 
+                                    class="badge-urgency-critical">Urgent</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="status">
+                            <i class="fas fa-info-circle"></i>
+                            Status
+                        </label>
+                        <select id="status" name="status" class="form-control" required>
+                            <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
+                            <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">
+                        <i class="fas fa-align-left"></i>
+                        Description
+                    </label>
+                    <textarea id="description" name="description" rows="4" 
+                              class="form-control" required>{{ ticket.description }}</textarea>
+                </div>
+
+                {% if user.is_admin %}
+                <div class="form-group">
+                    <label class="form-label" for="assigned_agent_id">
+                        <i class="fas fa-user-tie"></i>
+                        Assigned Agent
+                    </label>
+                    <select id="assigned_agent_id" name="assigned_agent_id" class="form-control">
+                        <option value="">-- Unassigned --</option>
+                        {% for agent in agents %}
+                        <option value="{{ agent.id }}" {% if ticket.assigned_agent_id == agent.id %}selected{% endif %}>
+                            {{ agent.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Update Ticket
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </a>
+                </div>
+            </form>
+
+            <!-- Ticket Metadata -->
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--glass-border);">
+                <div class="ticket-meta">
+                    <span>
+                        <i class="fas fa-user"></i>
+                        Created by: {{ ticket.user_name }}
+                    </span>
+                    <span>
+                        <i class="fas fa-calendar"></i>
+                        Created: {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </span>
+                </div>
+                {% if ticket.updated_at %}
+                <div class="ticket-meta" style="margin-top: 0.5rem;">
+                    <span>
+                        <i class="fas fa-clock"></i>
+                        Last updated: {{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Comments Section -->
+    <section class="tickets-section">
+        <div class="ticket-card" style="max-width: 800px; margin: 0 auto;">
+            <div class="ticket-header">
+                <h3 class="ticket-title">
+                    <i class="fas fa-comments"></i>
+                    Comments
+                </h3>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                {% for comment in comments %}
+                <div style="background: var(--glass-bg); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <strong style="color: #ffffff;">{{ comment.author.username }}</strong>
+                        <span style="font-size: 0.9rem; opacity: 0.8;">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    <div style="color: #ffffff; opacity: 0.9;">{{ comment.content }}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <form method="POST" action="{{ url_for('agent_add_comment', ticket_id=ticket.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="form-group">
+                    <label class="form-label" for="comment">
+                        <i class="fas fa-comment-plus"></i>
+                        Add Comment
+                    </label>
+                    <textarea id="comment" name="content" rows="3" 
+                              class="form-control" placeholder="Add a comment..." required></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-comment"></i>
+                    Add Comment
+                </button>
+            </form>
+        </div>
+    </section>
+</div>
+{% endblock %}
