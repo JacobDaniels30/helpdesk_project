@@ -161,41 +161,135 @@ def verify_email(token):
 
 
 # =============================
-# LOGIN ROUTE
+# ENHANCED LOGIN ROUTE
 # =============================
 @app.route('/login', methods=['GET', 'POST'])
-@limiter.limit("10 per 15 minutes")
+@limiter.limit("5 per 5 minutes")  # Stricter rate limiting
 def login():
     if request.method == 'POST':
         try:
-            email = request.form['email']
+            email = request.form['email'].strip()
             password = request.form['password']
+            ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+            user_agent = request.headers.get('User-Agent', '')
 
+            # Check if account is locked
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
+            
+            # Check for recent failed attempts
+            cursor.execute("""
+                SELECT COUNT(*) as failed_attempts 
+                FROM login_attempts 
+                WHERE email = %s AND attempt_time > DATE_SUB(NOW(), INTERVAL 15 MINUTE) 
+                AND success = FALSE
+            """, (email,))
+            failed_count = cursor.fetchone()['failed_attempts']
+            
+            # Check if account is locked
+            cursor.execute("""
+                SELECT account_locked_until 
+                FROM users 
+                WHERE email = %s AND account_locked_until > NOW()
+            """, (email,))
+            locked = cursor.fetchone()
+            
+            if locked:
+                flash('Account temporarily locked due to multiple failed login attempts. Please try again later.', 'danger')
+                cursor.close()
+                conn.close()
+                return render_template('login.html')
+
+            # Get user details
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
             user = cursor.fetchone()
-            cursor.close()
-            conn.close()
-
+            
             if user and bcrypt.check_password_hash(user['password_hash'], password):
+                # Check if account is verified
                 if not (user['is_verified'] or user['is_admin']):
+                    # Log failed attempt
+                    cursor.execute("""
+                        INSERT INTO login_attempts (email, ip_address, user_agent, success, failure_reason)
+                        VALUES (%s, %s, %s, FALSE, 'email_not_verified')
+                    """, (email, ip_address, user_agent))
+                    conn.commit()
+                    
                     flash('Please verify your email before logging in.', 'warning')
-                    return redirect(url_for('login'))
+                    cursor.close()
+                    conn.close()
+                    return render_template('login.html')
 
+                # Reset failed attempts and lockout
+                cursor.execute("""
+                    UPDATE users 
+                    SET failed_login_attempts = 0, account_locked_until = NULL, last_login_at = NOW(), last_login_ip = %s
+                    WHERE id = %s
+                """, (ip_address, user['id']))
+                
+                # Log successful login
+                cursor.execute("""
+                    INSERT INTO login_attempts (email, ip_address, user_agent, success, failure_reason)
+                    VALUES (%s, %s, %s, TRUE, NULL)
+                """, (email, ip_address, user_agent))
+                
+                # Create session
+                session_token = str(uuid.uuid4())
+                cursor.execute("""
+                    INSERT INTO user_sessions (user_id, session_token, ip_address, user_agent, expires_at)
+                    VALUES (%s, %s, %s, %s, DATE_ADD(NOW(), INTERVAL 24 HOUR))
+                """, (user['id'], session_token, ip_address, user_agent))
+                
+                conn.commit()
+                
+                # Set session variables
                 session['user_id'] = user['id']
                 session['user_email'] = user['email']
                 session['name'] = user['name']
                 session['is_admin'] = user['is_admin']
+                session['session_token'] = session_token
+                
+                cursor.close()
+                conn.close()
+                
                 return redirect(url_for('dashboard'))
             else:
-                logging.warning(f"Failed login attempt for email: {email}")
-                flash('Invalid email or password', 'danger')
+                # Log failed attempt
+                failure_reason = 'invalid_credentials' if user else 'user_not_found'
+                cursor.execute("""
+                    INSERT INTO login_attempts (email, ip_address, user_agent, success, failure_reason)
+                    VALUES (%s, %s, %s, FALSE, %s)
+                """, (email, ip_address, user_agent, failure_reason))
+                
+                # Update failed attempts count
+                if user:
+                    cursor.execute("""
+                        UPDATE users 
+                        SET failed_login_attempts = failed_login_attempts + 1,
+                        account_locked_until = CASE 
+                            WHEN failed_login_attempts >= 4 THEN DATE_ADD(NOW(), INTERVAL 30 MINUTE)
+                            ELSE account_locked_until
+                        END
+                        WHERE email = %s
+                    """, (email,))
+                
+                conn.commit()
+                
+                # Check if account should be locked
+                if user and user['failed_login_attempts'] >= 4:
+                    flash('Account temporarily locked due to multiple failed login attempts. Please try again in 30 minutes.', 'danger')
+                else:
+                    flash('Invalid email or password', 'danger')
+                
+                cursor.close()
+                conn.close()
+                return render_template('login.html')
+                
         except Exception as e:
             import traceback
             logging.error(f"Exception during login for email {request.form.get('email')}: {str(e)}")
             logging.error(traceback.format_exc())
             flash('An internal error occurred. Please try again later.', 'danger')
+            return render_template('login.html')
 
     return render_template('login.html')
 
