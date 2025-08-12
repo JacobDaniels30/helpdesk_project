@@ -1,11 +1,12 @@
 import mysql.connector
+import os
 
 def get_db_connection():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Jd!2025$MySQLRoot",  # Replace with your MySQL root password
-        database="helpdesk"
+        host=os.getenv('DB_HOST', 'localhost'),
+        user=os.getenv('DB_USER', 'root'),
+        password=os.getenv('DB_PASSWORD', 'Jd!2025$MySQLRoot'),  # Use environment variable
+        database=os.getenv('DB_NAME', 'helpdesk')
     )
 
 def get_user_by_email(email):

@@ -5,6 +5,7 @@ import os
 import bleach
 from datetime import datetime, timedelta
 
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 from flask_bcrypt import Bcrypt
 from flask_wtf import CSRFProtect
@@ -13,6 +14,9 @@ from db import get_db_connection, get_user_by_email
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 
