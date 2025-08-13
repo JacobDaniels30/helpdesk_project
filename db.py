@@ -45,6 +45,30 @@ def get_db_connection():
     
     return connection
 
+def get_user_by_email(email):
+    """
+    Retrieves a user by their email address.
+    
+    Args:
+        email (str): The email address to search for
+        
+    Returns:
+        dict: User dictionary with user data, or None if not found
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+        user = cursor.fetchone()
+        return user
+    except mysql.connector.Error as err:
+        print(f"Database Error retrieving user by email: {err}")
+        return None
+    finally:
+        cursor.close()
+        conn.close()
+
 # Quick test (optional)
 if __name__ == "__main__":
     try:
