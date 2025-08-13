@@ -39,10 +39,6 @@ app.config.update(
     SESSION_COOKIE_DOMAIN=None,  # Allow for subdomain handling
     SESSION_COOKIE_PATH='/',
     
-    # Additional security headers
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE='Lax',
-    
     # Ensure session is permanent with 24-hour lifetime
     SESSION_PERMANENT=True,
 )
