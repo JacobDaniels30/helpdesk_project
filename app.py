@@ -27,24 +27,46 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] %(message)s'
 )
 
-# Enhanced session configuration for production deployment
+# Production-ready session configuration
 app.config.update(
+    # Session Security Settings
+    SECRET_KEY=os.environ.get("SECRET_KEY"),
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
     SESSION_COOKIE_SECURE=os.environ.get('FLASK_ENV') == 'production',
     SESSION_COOKIE_NAME='helpdesk_session',
     PERMANENT_SESSION_LIFETIME=timedelta(hours=24),
     SESSION_COOKIE_DOMAIN=None,  # Allow for subdomain handling
-    SESSION_COOKIE_PATH='/'
+    SESSION_COOKIE_PATH='/',
+    
+    # Additional security headers
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    
+    # Ensure session is permanent with 24-hour lifetime
+    SESSION_PERMANENT=True,
 )
 
 ALLOWED_TAGS = ['b', 'i', 'u', 'a']
 ALLOWED_ATTRIBUTES = {'a': ['href', 'title']}
 
-# Use environment variable for secret key - enforce in production
-if os.environ.get('FLASK_ENV') == 'production' and not os.environ.get("SECRET_KEY"):
-    raise ValueError("SECRET_KEY environment variable must be set in production")
-app.secret_key = os.environ.get("SECRET_KEY", "supersecretkey")
+# Validate SECRET_KEY for production
+if os.environ.get('FLASK_ENV') == 'production':
+    if not os.environ.get("SECRET_KEY"):
+        raise ValueError(
+            "SECRET_KEY environment variable must be set in production. "
+            "Generate a secure key using: python -c \"import secrets; print(secrets.token_hex(32))\""
+        )
+    app.secret_key = os.environ.get("SECRET_KEY")
+else:
+    # Development fallback - warning for missing SECRET_KEY
+    if not os.environ.get("SECRET_KEY"):
+        import warnings
+        warnings.warn(
+            "Using default SECRET_KEY for development. Set SECRET_KEY environment variable for production.",
+            UserWarning
+        )
+    app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
 
 # Ensure session is permanent
 app.config['SESSION_PERMANENT'] = True
@@ -179,6 +201,11 @@ def login():
             password = request.form['password']
             ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
             user_agent = request.headers.get('User-Agent', '')
+
+            # Enhanced debugging
+            print(f"DEBUG: Login attempt for email: {email}")
+            print(f"DEBUG: Form data received: {request.form}")
+            print(f"DEBUG: Session before login: {dict(session)}")
 
             # Check if account is locked
             conn = get_db_connection()

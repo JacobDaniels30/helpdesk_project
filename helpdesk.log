@@ -2317,3 +2317,209 @@
 2025-08-12 09:31:13,839 [INFO] 127.0.0.1 - - [12/Aug/2025 09:31:13] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
 2025-08-12 10:24:59,140 [INFO] 127.0.0.1 - - [12/Aug/2025 10:24:59] "GET /admin_dashboard HTTP/1.1" 200 -
 2025-08-12 10:24:59,157 [INFO] 127.0.0.1 - - [12/Aug/2025 10:24:59] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
+2025-08-12 14:56:18,523 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.24.2.24:5000
+2025-08-12 14:56:18,524 [INFO] [33mPress CTRL+C to quit[0m
+2025-08-13 08:36:30,978 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.24.2.24:5000
+2025-08-13 08:36:30,978 [INFO] [33mPress CTRL+C to quit[0m
+2025-08-13 08:36:36,106 [INFO] 127.0.0.1 - - [13/Aug/2025 08:36:36] "GET /login HTTP/1.1" 200 -
+2025-08-13 08:36:36,268 [INFO] 127.0.0.1 - - [13/Aug/2025 08:36:36] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
+2025-08-13 08:36:36,338 [INFO] 127.0.0.1 - - [13/Aug/2025 08:36:36] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-08-13 08:36:38,770 [ERROR] Exception during login for email jacobdaniels237@gmail.com: 1049 (42000): Unknown database 'helpdesk_db'
+2025-08-13 08:36:38,777 [ERROR] Traceback (most recent call last):
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 354, in _open_connection
+    self._cmysql.connect(**cnx_kwargs)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+_mysql_connector.MySQLInterfaceError: Unknown database 'helpdesk_db'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\app.py", line 184, in login
+    conn = get_db_connection()
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\db.py", line 5, in get_db_connection
+    return mysql.connector.connect(
+           ~~~~~~~~~~~~~~~~~~~~~~~^
+        host=os.getenv('DB_HOST', 'localhost'),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        database=os.getenv('DB_NAME', 'helpdesk')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\pooling.py", line 322, in connect
+    return CMySQLConnection(*args, **kwargs)
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 142, in __init__
+    self.connect(**kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\abstracts.py", line 1604, in connect
+    self._open_connection()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 360, in _open_connection
+    raise get_mysql_exception(
+        err.errno, msg=err.msg, sqlstate=err.sqlstate
+    ) from err
+mysql.connector.errors.ProgrammingError: 1049 (42000): Unknown database 'helpdesk_db'
+
+2025-08-13 08:36:38,780 [INFO] 127.0.0.1 - - [13/Aug/2025 08:36:38] "POST /login HTTP/1.1" 200 -
+2025-08-13 08:36:38,791 [INFO] 127.0.0.1 - - [13/Aug/2025 08:36:38] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
+2025-08-13 08:36:43,444 [ERROR] Exception during login for email jacobdaniels237@gmail.com: 1049 (42000): Unknown database 'helpdesk_db'
+2025-08-13 08:36:43,448 [ERROR] Traceback (most recent call last):
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 354, in _open_connection
+    self._cmysql.connect(**cnx_kwargs)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+_mysql_connector.MySQLInterfaceError: Unknown database 'helpdesk_db'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\app.py", line 184, in login
+    conn = get_db_connection()
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\db.py", line 5, in get_db_connection
+    return mysql.connector.connect(
+           ~~~~~~~~~~~~~~~~~~~~~~~^
+        host=os.getenv('DB_HOST', 'localhost'),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        database=os.getenv('DB_NAME', 'helpdesk')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\pooling.py", line 322, in connect
+    return CMySQLConnection(*args, **kwargs)
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 142, in __init__
+    self.connect(**kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\abstracts.py", line 1604, in connect
+    self._open_connection()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 360, in _open_connection
+    raise get_mysql_exception(
+        err.errno, msg=err.msg, sqlstate=err.sqlstate
+    ) from err
+mysql.connector.errors.ProgrammingError: 1049 (42000): Unknown database 'helpdesk_db'
+
+2025-08-13 08:36:43,450 [INFO] 127.0.0.1 - - [13/Aug/2025 08:36:43] "POST /login HTTP/1.1" 200 -
+2025-08-13 08:36:43,751 [INFO] 127.0.0.1 - - [13/Aug/2025 08:36:43] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
+2025-08-13 08:39:05,951 [ERROR] Exception during login for email jacobdaniels237@gmail.com: 1049 (42000): Unknown database 'helpdesk_db'
+2025-08-13 08:39:05,954 [ERROR] Traceback (most recent call last):
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 354, in _open_connection
+    self._cmysql.connect(**cnx_kwargs)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+_mysql_connector.MySQLInterfaceError: Unknown database 'helpdesk_db'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\app.py", line 184, in login
+    conn = get_db_connection()
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\db.py", line 5, in get_db_connection
+    return mysql.connector.connect(
+           ~~~~~~~~~~~~~~~~~~~~~~~^
+        host=os.getenv('DB_HOST', 'localhost'),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        database=os.getenv('DB_NAME', 'helpdesk')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\pooling.py", line 322, in connect
+    return CMySQLConnection(*args, **kwargs)
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 142, in __init__
+    self.connect(**kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\abstracts.py", line 1604, in connect
+    self._open_connection()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 360, in _open_connection
+    raise get_mysql_exception(
+        err.errno, msg=err.msg, sqlstate=err.sqlstate
+    ) from err
+mysql.connector.errors.ProgrammingError: 1049 (42000): Unknown database 'helpdesk_db'
+
+2025-08-13 08:39:05,955 [INFO] 127.0.0.1 - - [13/Aug/2025 08:39:05] "POST /login HTTP/1.1" 200 -
+2025-08-13 08:39:06,026 [INFO] 127.0.0.1 - - [13/Aug/2025 08:39:06] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
+2025-08-13 08:39:07,837 [ERROR] Exception during login for email jacobdaniels237@gmail.com: 1049 (42000): Unknown database 'helpdesk_db'
+2025-08-13 08:39:07,838 [ERROR] Traceback (most recent call last):
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 354, in _open_connection
+    self._cmysql.connect(**cnx_kwargs)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+_mysql_connector.MySQLInterfaceError: Unknown database 'helpdesk_db'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\app.py", line 184, in login
+    conn = get_db_connection()
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\db.py", line 5, in get_db_connection
+    return mysql.connector.connect(
+           ~~~~~~~~~~~~~~~~~~~~~~~^
+        host=os.getenv('DB_HOST', 'localhost'),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        database=os.getenv('DB_NAME', 'helpdesk')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\pooling.py", line 322, in connect
+    return CMySQLConnection(*args, **kwargs)
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 142, in __init__
+    self.connect(**kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\abstracts.py", line 1604, in connect
+    self._open_connection()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 360, in _open_connection
+    raise get_mysql_exception(
+        err.errno, msg=err.msg, sqlstate=err.sqlstate
+    ) from err
+mysql.connector.errors.ProgrammingError: 1049 (42000): Unknown database 'helpdesk_db'
+
+2025-08-13 08:39:07,839 [INFO] 127.0.0.1 - - [13/Aug/2025 08:39:07] "POST /login HTTP/1.1" 200 -
+2025-08-13 08:39:08,087 [INFO] 127.0.0.1 - - [13/Aug/2025 08:39:08] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
+2025-08-13 08:39:09,378 [INFO] 127.0.0.1 - - [13/Aug/2025 08:39:09] "[31m[1mPOST /login HTTP/1.1[0m" 429 -
+2025-08-13 08:41:54,277 [INFO] 127.0.0.1 - - [13/Aug/2025 08:41:54] "GET /login HTTP/1.1" 200 -
+2025-08-13 08:41:54,415 [INFO] 127.0.0.1 - - [13/Aug/2025 08:41:54] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
+2025-08-13 08:41:57,963 [ERROR] Exception during login for email agent1@test.com: 1049 (42000): Unknown database 'helpdesk_db'
+2025-08-13 08:41:57,965 [ERROR] Traceback (most recent call last):
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 354, in _open_connection
+    self._cmysql.connect(**cnx_kwargs)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+_mysql_connector.MySQLInterfaceError: Unknown database 'helpdesk_db'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\app.py", line 184, in login
+    conn = get_db_connection()
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\db.py", line 5, in get_db_connection
+    return mysql.connector.connect(
+           ~~~~~~~~~~~~~~~~~~~~~~~^
+        host=os.getenv('DB_HOST', 'localhost'),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        database=os.getenv('DB_NAME', 'helpdesk')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\pooling.py", line 322, in connect
+    return CMySQLConnection(*args, **kwargs)
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 142, in __init__
+    self.connect(**kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\abstracts.py", line 1604, in connect
+    self._open_connection()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Jacob.Daniels\Desktop\helpdesk_project\helpdesk_env\Lib\site-packages\mysql\connector\connection_cext.py", line 360, in _open_connection
+    raise get_mysql_exception(
+        err.errno, msg=err.msg, sqlstate=err.sqlstate
+    ) from err
+mysql.connector.errors.ProgrammingError: 1049 (42000): Unknown database 'helpdesk_db'
+
+2025-08-13 08:41:57,966 [INFO] 127.0.0.1 - - [13/Aug/2025 08:41:57] "POST /login HTTP/1.1" 200 -
+2025-08-13 08:41:57,977 [INFO] 127.0.0.1 - - [13/Aug/2025 08:41:57] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
