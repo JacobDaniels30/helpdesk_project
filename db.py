@@ -1,21 +1,23 @@
+
 # db.py
+import os
 import mysql.connector
 
 # ----------------------------
-# Database connection settings
+# Get database connection settings from environment variables
 # ----------------------------
-DB_HOST = "sql3.freesqldatabase.com"
-DB_USER = "sql3794977"
-DB_PASSWORD = "rpFYhYuBqw"
-DB_NAME = "sql3794977"
-DB_PORT = 3306
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_NAME = os.getenv("DB_NAME", "helpdesk")
+DB_PORT = int(os.getenv("DB_PORT", 3306))
 
 # ----------------------------
-# Get database connection
+# Create database connection
 # ----------------------------
 def get_db_connection():
     """
-    Creates and returns a MySQL database connection to FreeSQLDatabase.
+    Creates and returns a MySQL database connection using environment variables.
     """
     try:
         connection = mysql.connector.connect(
@@ -25,7 +27,7 @@ def get_db_connection():
             database=DB_NAME,
             port=DB_PORT
         )
-        print("✅ Connected to FreeSQLDatabase successfully!")
+        print("✅ Connected to the database successfully!")
         return connection
     except mysql.connector.Error as err:
         print(f"❌ Database Connection Error: {err}")
