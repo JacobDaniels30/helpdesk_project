@@ -12,6 +12,7 @@ from flask_wtf import CSRFProtect
 from flask_mail import Mail, Message
 from db import get_db_connection, get_user_by_email
 
+
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -332,10 +333,11 @@ def login():
 # =============================
 @app.route('/dashboard')
 def dashboard():
-    if 'user_email' not in session:
+    user_email = session.get('user_email')
+    if not user_email:
         return redirect(url_for('login'))
 
-    user = get_user_by_email(session['user_email'])
+    user = get_user_by_email(user_email)
     
     if not user:
         session.clear()
