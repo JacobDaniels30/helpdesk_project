@@ -1,63 +1,54 @@
 # db.py
-import os
 import mysql.connector
-from urllib.parse import urlparse
 
+# ----------------------------
+# Database connection settings
+# ----------------------------
+DB_HOST = "sql3.freesqldatabase.com"
+DB_USER = "sql3794977"
+DB_PASSWORD = "rpFYhYuBqw"
+DB_NAME = "sql3794977"
+DB_PORT = 3306
+
+# ----------------------------
+# Get database connection
+# ----------------------------
 def get_db_connection():
     """
-    Creates and returns a MySQL database connection.
-    Automatically switches between local Railway Public URL (when running locally)
-    and Railway's internal host (when running inside Railway).
+    Creates and returns a MySQL database connection to FreeSQLDatabase.
     """
-    
-    # Get environment variables from Railway
-    mysql_url = os.getenv("MYSQL_URL")  # Internal URL for Railway deployments
-    mysql_public_url = os.getenv("MYSQL_PUBLIC_URL")  # Public URL for local dev
-    mysql_root_password = os.getenv("MYSQL_ROOT_PASSWORD", "")
-    mysql_database = os.getenv("MYSQL_DATABASE", "railway")
-
-    if mysql_url and "mysql.railway.internal" in mysql_url:
-        # 🟢 Running inside Railway — use internal DB
-        parsed = urlparse(mysql_url)
-        host = parsed.hostname
-        port = parsed.port or 3306
-        user = parsed.username
-        password = parsed.password
-        
-        print("Connecting to Railway internal MySQL...")
+    try:
         connection = mysql.connector.connect(
-            host=host,
-            port=port,
-            user=user,
-            password=password or mysql_root_password,
-            database=mysql_database
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            database=DB_NAME,
+            port=DB_PORT
         )
-    else:
-        # 🟢 Running locally — use Railway public proxy connection
-        print("Connecting to Railway public MySQL for local development...")
-        connection = mysql.connector.connect(
-            host="trolley.proxy.rlwy.net",
-            port=19887,
-            user="root",
-            password="UGLlIfmOaUwBrMtunDtWjFJcSjSfKcVU",
-            database="railway"
-        )
-    
-    return connection
+        print("✅ Connected to FreeSQLDatabase successfully!")
+        return connection
+    except mysql.connector.Error as err:
+        print(f"❌ Database Connection Error: {err}")
+        return None
 
+# ----------------------------
+# Get user by email
+# ----------------------------
 def get_user_by_email(email):
     """
     Retrieves a user by their email address.
-    
+
     Args:
         email (str): The email address to search for
-        
+
     Returns:
         dict: User dictionary with user data, or None if not found
     """
     conn = get_db_connection()
+    if conn is None:
+        return None
+
     cursor = conn.cursor(dictionary=True)
-    
     try:
         cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
@@ -69,13 +60,13 @@ def get_user_by_email(email):
         cursor.close()
         conn.close()
 
+# ----------------------------
 # Quick test (optional)
+# ----------------------------
 if __name__ == "__main__":
-    try:
-        conn = get_db_connection()
+    conn = get_db_connection()
+    if conn:
         cursor = conn.cursor()
         cursor.execute("SELECT NOW()")
         print("DB Time:", cursor.fetchone())
         conn.close()
-    except mysql.connector.Error as err:
-        print("Database Connection Error:", err)

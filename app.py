@@ -140,7 +140,7 @@ def register():
         verification_token = str(uuid.uuid4())
 
         cursor.execute(
-            "INSERT INTO users (name, email, password_hash, is_verified, verification_token) VALUES (%s, %s, %s, %s, %s)",
+            "INSERT INTO users (name, email, password_hash, is_verified, verification_token, created_at) VALUES (%s, %s, %s, %s, %s, NOW())",
             (name, email, hashed_password, False, verification_token)
         )
         conn.commit()
@@ -673,7 +673,7 @@ def submit_ticket():
         sla_response_due, sla_resolution_due = calculate_sla_times(urgency, conn)
 
         cursor.execute(
-            "INSERT INTO tickets (user_id, title, description, urgency, category_id, sla_response_due, sla_resolution_due) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            "INSERT INTO tickets (user_id, title, description, urgency, category_id, sla_response_due, sla_resolution_due, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())",
             (user_id, title, description, urgency, category_id, sla_response_due, sla_resolution_due)
         )
         conn.commit()
@@ -974,7 +974,7 @@ def register_agent():
         verification_token = str(uuid.uuid4())
         
         cursor.execute(
-            "INSERT INTO users (name, email, password_hash, role, is_verified, verification_token) VALUES (%s, %s, %s, %s, %s, %s)",
+            "INSERT INTO users (name, email, password_hash, role, is_verified, verification_token, created_at) VALUES (%s, %s, %s, %s, %s, %s, NOW())",
             (name, email, hashed_password, 'agent', True, verification_token)
         )
         conn.commit()
