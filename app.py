@@ -1,79 +1,70 @@
+import os
+from dotenv import load_dotenv
 import uuid
 import logging
 import re
-import os
 import bleach
 from datetime import datetime, timedelta
 
-from dotenv import load_dotenv
+# Load environment variables from .env
+load_dotenv()
+
+# Debug prints to confirm they loaded
+print("DB_HOST:", os.getenv("DB_HOST"))
+print("DB_NAME:", os.getenv("DB_NAME"))
+
+# Flask and related imports
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 from flask_bcrypt import Bcrypt
 from flask_wtf import CSRFProtect
 from flask_mail import Mail, Message
+
+# Database functions (import after load_dotenv)
 from db import get_db_connection, get_user_by_email
 
-
+# Rate limiting
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-# Load environment variables from .env file
-load_dotenv()
-
+# Initialize Flask app
 app = Flask(__name__)
+
+# Set SECRET_KEY at the top using os.getenv() with dev fallback
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 # Configure logging
 logging.basicConfig(
-    filename='helpdesk.log',  # logs will be saved in this file
-    level=logging.WARNING,    # only log warnings and above
+    filename='helpdesk.log',
+    level=logging.WARNING,
     format='%(asctime)s [%(levelname)s] %(message)s'
 )
 
 # Production-ready session configuration
 app.config.update(
-    # Session Security Settings
-    SECRET_KEY=os.environ.get("SECRET_KEY"),
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
-    SESSION_COOKIE_SECURE=os.environ.get('FLASK_ENV') == 'production',
+    SESSION_COOKIE_SECURE=False,  # Disabled for local development
     SESSION_COOKIE_NAME='helpdesk_session',
     PERMANENT_SESSION_LIFETIME=timedelta(hours=24),
-    SESSION_COOKIE_DOMAIN=None,  # Allow for subdomain handling
+    SESSION_COOKIE_DOMAIN=None,
     SESSION_COOKIE_PATH='/',
-    
-    # Ensure session is permanent with 24-hour lifetime
     SESSION_PERMANENT=True,
 )
 
+# Explicitly assign app.secret_key
+app.secret_key = app.config['SECRET_KEY']
+
+# ALLOWED_TAGS for sanitization
 ALLOWED_TAGS = ['b', 'i', 'u', 'a']
 ALLOWED_ATTRIBUTES = {'a': ['href', 'title']}
 
-# Validate SECRET_KEY for production
-if os.environ.get('FLASK_ENV') == 'production':
-    if not os.environ.get("SECRET_KEY"):
-        raise ValueError(
-            "SECRET_KEY environment variable must be set in production. "
-            "Generate a secure key using: python -c \"import secrets; print(secrets.token_hex(32))\""
-        )
-    app.secret_key = os.environ.get("SECRET_KEY")
-else:
-    # Development fallback - warning for missing SECRET_KEY
-    if not os.environ.get("SECRET_KEY"):
-        import warnings
-        warnings.warn(
-            "Using default SECRET_KEY for development. Set SECRET_KEY environment variable for production.",
-            UserWarning
-        )
-    app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
-
-# Ensure session is permanent
-app.config['SESSION_PERMANENT'] = True
-
-# Configure Flask-Limiter with in-memory storage (no Redis required)
+# Configure Flask-Limiter with in-memory storage
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,
     default_limits=["200 per day", "50 per hour"]
 )
+
 
 # =======================
 # Flask-Mail Configuration
@@ -236,19 +227,20 @@ def login():
             user = cursor.fetchone()
             
             if user and bcrypt.check_password_hash(user['password_hash'], password):
-                # Check if account is verified
-                if not (user['is_verified'] or user['is_admin']):
-                    # Log failed attempt
-                    cursor.execute("""
-                        INSERT INTO login_attempts (email, ip_address, user_agent, success, failure_reason)
-                        VALUES (%s, %s, %s, FALSE, 'email_not_verified')
-                    """, (email, ip_address, user_agent))
-                    conn.commit()
-                    
-                    flash('Please verify your email before logging in.', 'warning')
-                    cursor.close()
-                    conn.close()
-                    return render_template('login.html')
+                # Check if account is verified (only in production)
+                if os.environ.get('FLASK_ENV') == 'production':
+                    if not (user['is_verified'] or user['is_admin']):
+                        # Log failed attempt
+                        cursor.execute("""
+                            INSERT INTO login_attempts (email, ip_address, user_agent, success, failure_reason)
+                            VALUES (%s, %s, %s, FALSE, 'email_not_verified')
+                        """, (email, ip_address, user_agent))
+                        conn.commit()
+                        
+                        flash('Please verify your email before logging in.', 'warning')
+                        cursor.close()
+                        conn.close()
+                        return render_template('login.html')
 
                 # Reset failed attempts and lockout
                 cursor.execute("""
