@@ -3902,3 +3902,18 @@ NameError: name 'DB_HOST' is not defined
 
 2025-08-15 14:02:26,429 [INFO] 127.0.0.1 - - [15/Aug/2025 14:02:26] "POST /login HTTP/1.1" 200 -
 2025-08-15 14:02:26,467 [INFO] 127.0.0.1 - - [15/Aug/2025 14:02:26] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
+2025-08-15 14:11:55,274 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.24.6.86:5000
+2025-08-15 14:11:55,274 [INFO] [33mPress CTRL+C to quit[0m
+2025-08-15 14:12:00,518 [INFO] 127.0.0.1 - - [15/Aug/2025 14:12:00] "GET /login HTTP/1.1" 200 -
+2025-08-15 14:12:00,625 [INFO] 127.0.0.1 - - [15/Aug/2025 14:12:00] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
+2025-08-15 14:12:08,353 [INFO] 127.0.0.1 - - [15/Aug/2025 14:12:08] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-08-15 14:12:08,369 [INFO] 127.0.0.1 - - [15/Aug/2025 14:12:08] "[32mGET /dashboard HTTP/1.1[0m" 302 -
+2025-08-15 14:12:08,872 [INFO] 127.0.0.1 - - [15/Aug/2025 14:12:08] "GET /admin_dashboard HTTP/1.1" 200 -
+2025-08-15 14:12:08,943 [INFO] 127.0.0.1 - - [15/Aug/2025 14:12:08] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
+2025-08-15 14:12:39,868 [INFO] 127.0.0.1 - - [15/Aug/2025 14:12:39] "GET /register_agent HTTP/1.1" 200 -
+2025-08-15 14:12:40,109 [INFO] 127.0.0.1 - - [15/Aug/2025 14:12:40] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
+2025-08-15 14:12:45,488 [INFO] 127.0.0.1 - - [15/Aug/2025 14:12:45] "GET /admin_dashboard HTTP/1.1" 200 -
+2025-08-15 14:12:45,531 [INFO] 127.0.0.1 - - [15/Aug/2025 14:12:45] "[36mGET /static/css/admin-modern.css HTTP/1.1[0m" 304 -
