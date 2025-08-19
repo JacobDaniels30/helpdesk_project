@@ -43,11 +43,9 @@ logging.basicConfig(
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
-    SESSION_COOKIE_SECURE=False,  # Disabled for local development
+    SESSION_COOKIE_SECURE=True,  # Must be True for HTTPS
     SESSION_COOKIE_NAME='helpdesk_session',
     PERMANENT_SESSION_LIFETIME=timedelta(hours=24),
-    SESSION_COOKIE_DOMAIN=None,
-    SESSION_COOKIE_PATH='/',
     SESSION_PERMANENT=True,
 )
 
