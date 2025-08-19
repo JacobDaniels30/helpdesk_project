@@ -49,11 +49,11 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] %(message)s'
 )
 
-# Production-ready session configuration
+# Render-compatible session configuration
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
-    SESSION_COOKIE_SECURE=True,  # Must be True for HTTPS
+    SESSION_COOKIE_SECURE=os.environ.get('FLASK_ENV') == 'production',  # Dynamic based on environment
     SESSION_COOKIE_NAME='helpdesk_session',
     PERMANENT_SESSION_LIFETIME=timedelta(hours=24),
     SESSION_PERMANENT=True,
