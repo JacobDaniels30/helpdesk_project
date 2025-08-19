@@ -29,8 +29,18 @@ from flask_limiter.util import get_remote_address
 # Initialize Flask app
 app = Flask(__name__)
 
-# Set SECRET_KEY at the top using os.getenv() with dev fallback
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+# Set SECRET_KEY from environment variable (required for production)
+secret_key = os.getenv('SECRET_KEY')
+if not secret_key:
+    if os.environ.get('FLASK_ENV') == 'production':
+        raise ValueError("SECRET_KEY environment variable is required for production")
+    else:
+        # Development fallback - generate a temporary key with warning
+        import secrets
+        secret_key = secrets.token_hex(32)
+        print("⚠️  WARNING: Using generated SECRET_KEY for development. Set SECRET_KEY in .env file for consistency.")
+        
+app.config['SECRET_KEY'] = secret_key
 
 # Configure logging
 logging.basicConfig(
