@@ -4,6 +4,16 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-modern.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+<script>
+var userData = {
+    'id': {{ user.id if user else 'null' }},
+    'is_admin': {{ user.is_admin if user else 'false' }},
+    'role': '{{ user.role if user else "" }}'
+};
+var ticketId = {{ ticket.id }};
+var csrfToken = '{{ csrf_token() }}';
+</script>
+
 <div class="admin-container">
     <!-- Modern Header -->
     <header class="admin-header">
@@ -20,86 +30,105 @@
     </header>
 
     <!-- Edit Ticket Form Section -->
-    <section class="tickets-section">
-        <div class="ticket-card" style="max-width: 800px; margin: 0 auto;">
-            <div class="ticket-header">
+    <section class="tickets-section" style="padding: 2rem 0;">
+        <div class="ticket-card" style="max-width: 900px; margin: 0 auto; padding: 2.5rem;">
+            <div class="ticket-header" style="margin-bottom: 2rem;">
                 <h3 class="ticket-title">
                     <i class="fas fa-ticket-alt"></i>
                     Ticket #{{ ticket.id }} - {{ ticket.title }}
                 </h3>
             </div>
 
-            <form method="post" action="{{ url_for('edit_ticket', ticket_id=ticket.id) }}">
+            <form method="post" action="{{ url_for('edit_ticket', ticket_id=ticket.id) }}" style="margin-top: 2rem;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                    <div class="form-group">
-                        <label class="form-label" for="title">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="form-label" for="title" style="margin-bottom: 0.75rem; display: block; color: #ffffff;">
                             <i class="fas fa-heading"></i>
                             Title
                         </label>
-                        <input type="text" id="title" name="title" value="{{ ticket.title }}" 
-                               class="form-control" required>
+                <input type="text" id="title" name="title" value="{{ ticket.title }}"
+                               class="form-control" required style="width: 100%;" {% if user.is_admin or user.role == 'agent' %}readonly{% endif %}>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="urgency">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Priority
-                        </label>
-                        <select id="urgency" name="urgency" class="form-control" required>
-                            <option value="low" {% if ticket.urgency == 'low' %}selected{% endif %} 
-                                    class="badge-urgency-low">Low</option>
-                            <option value="medium" {% if ticket.urgency == 'medium' or not ticket.urgency %}selected{% endif %} 
-                                    class="badge-urgency-medium">Medium</option>
-                            <option value="high" {% if ticket.urgency == 'high' %}selected{% endif %} 
-                                    class="badge-urgency-high">High</option>
-                            <option value="urgent" {% if ticket.urgency == 'urgent' %}selected{% endif %} 
-                                    class="badge-urgency-critical">Urgent</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="status">
-                            <i class="fas fa-info-circle"></i>
-                            Status
-                        </label>
-                        <select id="status" name="status" class="form-control" required>
-                            <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
-                            <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
-                            <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
-                            <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
-                        </select>
-                    </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label" for="urgency" style="margin-bottom: 0.75rem; display: block; color: #ffffff;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Priority
+                    </label>
+                    <select id="urgency" name="urgency" class="form-control" required style="width: 100%;" {% if user.is_admin or user.role == 'agent' %}disabled{% endif %}>
+                    <option value="Low" {% if ticket.urgency == 'Low' %}selected{% endif %}
+                            class="badge-urgency-low">Low</option>
+                    <option value="Normal" {% if ticket.urgency == 'Normal' or not ticket.urgency %}selected{% endif %}
+                            class="badge-urgency-medium">Normal</option>
+                    <option value="High" {% if ticket.urgency == 'High' %}selected{% endif %}
+                            class="badge-urgency-high">High</option>
+                    <option value="Critical" {% if ticket.urgency == 'Critical' %}selected{% endif %}
+                            class="badge-urgency-critical">Critical</option>
+                    </select>
+                    {% if user.is_admin or user.role == 'agent' %}<input type="hidden" name="urgency" value="{{ ticket.urgency }}">{% endif %}
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="description">
-                        <i class="fas fa-align-left"></i>
-                        Description
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label" for="category_id" style="margin-bottom: 0.75rem; display: block; color: #ffffff;">
+                        <i class="fas fa-tags"></i>
+                        Category
                     </label>
-                    <textarea id="description" name="description" rows="4" 
-                              class="form-control" required>{{ ticket.description }}</textarea>
+                    <select id="category_id" name="category_id" class="form-control" style="width: 100%;" {% if user.is_admin or user.role == 'agent' %}disabled{% endif %}>
+                        <option value="">-- Select Category --</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if ticket.category_id == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if user.is_admin or user.role == 'agent' %}<input type="hidden" name="category_id" value="{{ ticket.category_id }}">{% endif %}
                 </div>
 
                 {% if user.is_admin %}
-                <div class="form-group">
-                    <label class="form-label" for="assigned_agent_id">
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label" for="status" style="margin-bottom: 0.75rem; display: block; color: #ffffff;">
+                        <i class="fas fa-info-circle"></i>
+                        Status
+                    </label>
+                    <select id="status" name="status" class="form-control" required style="width: 100%;">
+                        <option value="Open" {% if ticket.status == 'Open' %}selected{% endif %}>Open</option>
+                        <option value="In Progress" {% if ticket.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                        <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="Closed" {% if ticket.status == 'Closed' %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+                {% endif %}
+                </div>
+
+                <div class="form-group" style="margin-bottom: 2rem;">
+                    <label class="form-label" for="description" style="margin-bottom: 0.75rem; display: block; color: #ffffff;">
+                        <i class="fas fa-align-left"></i>
+                        Description
+                    </label>
+                    <textarea id="description" name="description" rows="5"
+                              class="form-control" required style="width: 100%; resize: vertical;" {% if user.is_admin or user.role == 'agent' %}readonly{% endif %}>{{ ticket.description }}</textarea>
+                </div>
+
+                {% if user.is_admin %}
+                <div class="form-group" style="margin-bottom: 2rem;">
+                    <label class="form-label" for="assigned_agent_id" style="margin-bottom: 0.75rem; display: block; color: #ffffff;">
                         <i class="fas fa-user-tie"></i>
                         Assigned Agent
                     </label>
-                    <select id="assigned_agent_id" name="assigned_agent_id" class="form-control">
+                    <select id="assigned_agent_id" name="assigned_agent_id" class="form-control" style="width: 100%;">
                         <option value="">-- Unassigned --</option>
                         {% for agent in agents %}
                         <option value="{{ agent.id }}" {% if ticket.assigned_agent_id == agent.id %}selected{% endif %}>
-                            {{ agent.username }}
+                            {{ agent.name }}
                         </option>
                         {% endfor %}
                     </select>
                 </div>
                 {% endif %}
 
-                <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
+                <div style="display: flex; gap: 1rem; margin-top: 3rem; justify-content: flex-end; padding-top: 2rem; border-top: 1px solid var(--glass-border);">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i>
                         Update Ticket
@@ -110,6 +139,22 @@
                     </a>
                 </div>
             </form>
+            {% if not user.is_admin and (user.role == 'agent' or user.role == 'admin') %}
+            <form method="post" action="{{ url_for('agent_update_status', ticket_id=ticket.id) }}" style="margin-top: 2rem;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="internal_notes" class="form-label" style="color: #ffffff;">
+                        Internal Notes
+                    </label>
+                    <textarea id="internal_notes" name="internal_notes" class="form-control" rows="4" style="width: 100%;">{{ ticket.internal_notes or '' }}</textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Internal Notes
+                    </button>
+                </div>
+            </form>
+            {% endif %}
 
             <!-- Ticket Metadata -->
             <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--glass-border);">
@@ -118,9 +163,15 @@
                         <i class="fas fa-user"></i>
                         Created by: {{ ticket.user_name }}
                     </span>
+                    {% if ticket.assigned_agent_name %}
+                    <span>
+                        <i class="fas fa-user-tie"></i>
+                        Assigned to: {{ ticket.assigned_agent_name }}
+                    </span>
+                    {% endif %}
                     <span>
                         <i class="fas fa-calendar"></i>
-                        Created: {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        Created: {{ ticket.created_at_dt.strftime('%Y-%m-%d %H:%M') if ticket.created_at_dt else 'N/A' }}
                     </span>
                 </div>
                 {% if ticket.updated_at %}
@@ -137,7 +188,7 @@
 
     <!-- Comments Section -->
     <section class="tickets-section">
-        <div class="ticket-card" style="max-width: 800px; margin: 0 auto;">
+        <div class="ticket-card" style="max-width: 800px; margin: 0 auto; padding: 1rem; max-height: 400px; overflow-y: auto;" id="comments-container">
             <div class="ticket-header">
                 <h3 class="ticket-title">
                     <i class="fas fa-comments"></i>
@@ -145,36 +196,294 @@
                 </h3>
             </div>
 
-            <div style="margin-bottom: 2rem;">
-                {% for comment in comments %}
-                <div style="background: var(--glass-bg); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                        <strong style="color: #ffffff;">{{ comment.author.username }}</strong>
-                        <span style="font-size: 0.9rem; opacity: 0.8;">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
-                    </div>
-                    <div style="color: #ffffff; opacity: 0.9;">{{ comment.content }}</div>
+            {% for comment in comments %}
+            <div class="comment" id="comment-{{ comment.id }}" style="background: var(--glass-bg); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <strong style="color: #ffffff;">{{ comment.commenter_name }} ({{ comment.commenter_role }})</strong>
+                    <span style="font-size: 0.9rem; opacity: 0.8;">{{ comment.created_at.strftime('%H:%M, %d-%m-%Y') }}</span>
                 </div>
-                {% endfor %}
+                <div style="color: #ffffff; opacity: 0.9;">{{ comment.comment|safe }}</div>
             </div>
+            {% endfor %}
 
-            <form method="POST" action="{{ url_for('agent_add_comment', ticket_id=ticket.id) }}">
+            <form id="add-comment-form" method="POST" action="{{ url_for('comments.add_ticket_comment', ticket_id=ticket.id) }}" style="margin-top: 1rem;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                
-                <div class="form-group">
-                    <label class="form-label" for="comment">
-                        <i class="fas fa-comment-plus"></i>
-                        Add Comment
-                    </label>
-                    <textarea id="comment" name="content" rows="3" 
-                              class="form-control" placeholder="Add a comment..." required></textarea>
-                </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-comment"></i>
-                    Add Comment
+                <textarea id="comment-input" name="comment" placeholder="Add a comment..." class="form-control" required style="width: 100%; resize: vertical; min-height: 60px;"></textarea>
+                <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">
+                    <i class="fas fa-paper-plane"></i> Submit Comment
                 </button>
             </form>
         </div>
     </section>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle edit comment button clicks
+    document.querySelectorAll('.edit-comment-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const commentId = this.getAttribute('data-comment-id');
+            const commentDiv = document.getElementById('comment-' + commentId);
+            const commentContent = commentDiv.querySelector('.comment-content');
+            const editForm = document.getElementById('edit-form-' + commentId);
+
+            // Hide comment content and show edit form
+            commentContent.style.display = 'none';
+            editForm.style.display = 'block';
+
+            // Hide edit button
+            this.style.display = 'none';
+        });
+    });
+
+    // Handle cancel edit button clicks
+    document.querySelectorAll('.cancel-edit-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const commentId = this.getAttribute('data-comment-id');
+            const commentDiv = document.getElementById('comment-' + commentId);
+            const commentContent = commentDiv.querySelector('.comment-content');
+            const editForm = document.getElementById('edit-form-' + commentId);
+            const editBtn = commentDiv.querySelector('.edit-comment-btn');
+
+            // Show comment content and hide edit form
+            commentContent.style.display = 'block';
+            editForm.style.display = 'none';
+
+            // Show edit button
+            editBtn.style.display = 'inline-block';
+        });
+    });
+});
+
+// Confirm delete function
+function confirmDelete() {
+    return confirm('Are you sure you want to delete this comment? This action cannot be undone.');
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Define user variables from data attributes
+    const userId = userData.id;
+    const isAdmin = userData.is_admin;
+    const ticketId = "{{ ticket.id }}";
+    const csrfToken = "{{ csrf_token() }}";
+
+    // AJAX for adding a comment
+    const addCommentForm = document.getElementById('add-comment-form');
+    addCommentForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData(addCommentForm);
+        const commentText = formData.get('comment').trim();
+        if (!commentText) {
+            alert('Comment cannot be empty.');
+            return;
+        }
+
+        fetch(`{{ url_for('comments.add_ticket_comment', ticket_id=ticket.id) }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ comment: commentText })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Append new comment to comments list
+                appendCommentToList(data.comment);
+                // Clear textarea
+                addCommentForm.reset();
+            } else {
+                alert(data.error || 'Failed to add comment.');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding comment:', error);
+            alert('Error adding comment.');
+        });
+    });
+
+    // Function to append a comment to the comments list
+    function appendCommentToList(comment) {
+        const commentsContainer = document.querySelector('.ticket-card > div[style*="margin-bottom: 2rem;"]');
+        if (!commentsContainer) return;
+
+        // Create comment div
+        const commentDiv = document.createElement('div');
+        commentDiv.id = `comment-${comment.id}`;
+        commentDiv.style.background = 'var(--glass-bg)';
+        commentDiv.style.padding = '1rem';
+        commentDiv.style.borderRadius = 'var(--radius-md)';
+        commentDiv.style.marginBottom = '1rem';
+
+        // Comment header
+        const headerDiv = document.createElement('div');
+        headerDiv.style.display = 'flex';
+        headerDiv.style.justifyContent = 'space-between';
+        headerDiv.style.alignItems = 'center';
+        headerDiv.style.marginBottom = '0.5rem';
+
+        const strong = document.createElement('strong');
+        strong.style.color = '#ffffff';
+        strong.textContent = `${comment.commenter_name} (${comment.commenter_role})`;
+
+        const rightDiv = document.createElement('div');
+        rightDiv.style.display = 'flex';
+        rightDiv.style.alignItems = 'center';
+        rightDiv.style.gap = '0.5rem';
+
+        const timeSpan = document.createElement('span');
+        timeSpan.style.fontSize = '0.9rem';
+        timeSpan.style.opacity = '0.8';
+        const createdAt = new Date(comment.created_at);
+        timeSpan.textContent = createdAt.toLocaleString();
+
+        rightDiv.appendChild(timeSpan);
+
+        // Edit and delete buttons if user is authorized
+        if (userId) {
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = 'btn btn-sm btn-outline-primary edit-comment-btn';
+            editBtn.style.fontSize = '0.8rem';
+            editBtn.style.padding = '0.2rem 0.5rem';
+            editBtn.setAttribute('data-comment-id', comment.id);
+            editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+            editBtn.addEventListener('click', () => {
+                toggleEditForm(comment.id, true);
+            });
+
+            const deleteForm = document.createElement('form');
+            deleteForm.method = 'POST';
+            deleteForm.action = `{{ url_for('comments.delete_comment_form', ticket_id=ticket.id, comment_id=0) }}`.replace('/0/', `/${comment.id}/`);
+            deleteForm.style.display = 'inline';
+            deleteForm.onsubmit = function() {
+                return confirmDelete();
+            };
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken;
+            deleteForm.appendChild(csrfInput);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'submit';
+            deleteBtn.className = 'btn btn-sm btn-outline-danger';
+            deleteBtn.style.fontSize = '0.8rem';
+            deleteBtn.style.padding = '0.2rem 0.5rem';
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+            deleteForm.appendChild(deleteBtn);
+
+            rightDiv.appendChild(editBtn);
+            rightDiv.appendChild(deleteForm);
+        }
+
+        headerDiv.appendChild(strong);
+        headerDiv.appendChild(rightDiv);
+
+        // Comment content
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'comment-content';
+        contentDiv.style.color = '#ffffff';
+        contentDiv.style.opacity = '0.9';
+        contentDiv.innerHTML = comment.comment;
+
+        // Edit form (hidden by default)
+        let editFormDiv = null;
+        if (userId) {
+            editFormDiv = document.createElement('div');
+            editFormDiv.className = 'edit-comment-form';
+            editFormDiv.id = `edit-form-${comment.id}`;
+            editFormDiv.style.display = 'none';
+            editFormDiv.style.marginTop = '1rem';
+            editFormDiv.style.paddingTop = '1rem';
+            editFormDiv.style.borderTop = '1px solid var(--glass-border)';
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `{{ url_for('comments.edit_comment_form', ticket_id=ticket.id, comment_id=0) }}`.replace('/0/', `/${comment.id}/`);
+
+            const csrfInput2 = document.createElement('input');
+            csrfInput2.type = 'hidden';
+            csrfInput2.name = 'csrf_token';
+            csrfInput2.value = csrfToken;
+            form.appendChild(csrfInput2);
+
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+            formGroup.style.marginBottom = '1rem';
+
+            const textarea = document.createElement('textarea');
+            textarea.name = 'comment';
+            textarea.rows = 3;
+            textarea.className = 'form-control';
+            textarea.required = true;
+            textarea.style.width = '100%';
+            textarea.style.resize = 'vertical';
+            textarea.textContent = comment.comment;
+            formGroup.appendChild(textarea);
+
+            form.appendChild(formGroup);
+
+            const btnDiv = document.createElement('div');
+            btnDiv.style.display = 'flex';
+            btnDiv.style.gap = '0.5rem';
+
+            const saveBtn = document.createElement('button');
+            saveBtn.type = 'submit';
+            saveBtn.className = 'btn btn-primary btn-sm';
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
+            btnDiv.appendChild(saveBtn);
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'btn btn-secondary btn-sm cancel-edit-btn';
+            cancelBtn.setAttribute('data-comment-id', comment.id);
+            cancelBtn.innerHTML = '<i class="fas fa-times"></i> Cancel';
+            cancelBtn.addEventListener('click', () => {
+                toggleEditForm(comment.id, false);
+            });
+            btnDiv.appendChild(cancelBtn);
+
+            form.appendChild(btnDiv);
+            editFormDiv.appendChild(form);
+        }
+
+        commentDiv.appendChild(headerDiv);
+        commentDiv.appendChild(contentDiv);
+        if (editFormDiv) {
+            commentDiv.appendChild(editFormDiv);
+        }
+
+        commentsContainer.appendChild(commentDiv);
+    }
+
+    // Toggle edit form visibility
+    function toggleEditForm(commentId, show) {
+        const commentDiv = document.getElementById('comment-' + commentId);
+        const commentContent = commentDiv.querySelector('.comment-content');
+        const editForm = document.getElementById('edit-form-' + commentId);
+        const editBtn = commentDiv.querySelector('.edit-comment-btn');
+
+        if (show) {
+            commentContent.style.display = 'none';
+            editForm.style.display = 'block';
+            editBtn.style.display = 'none';
+        } else {
+            commentContent.style.display = 'block';
+            editForm.style.display = 'none';
+            editBtn.style.display = 'inline-block';
+        }
+    }
+
+    // Confirm delete function
+    window.confirmDelete = function() {
+        return confirm('Are you sure you want to delete this comment? This action cannot be undone.');
+    };
+});
+</script>
 {% endblock %}

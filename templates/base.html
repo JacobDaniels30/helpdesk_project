@@ -13,7 +13,7 @@
         <div class="logo">Helpdesk</div>
         <nav class="nav-links">
             <a href="/">Home</a>
-            {% if user.is_authenticated %}
+            {% if user %}
                 <a href="/logout" class="btn-logout">Logout</a>
             {% endif %}
         </nav>

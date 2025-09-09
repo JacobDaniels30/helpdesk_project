@@ -42,8 +42,8 @@
                 <div class="stat-label">In Progress</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">{{ stats.resolved_today or 0 }}</div>
-                <div class="stat-label">Resolved Today</div>
+                <div class="stat-number">{{ stats.completed or 0 }}</div>
+                <div class="stat-label">Completed</div>
             </div>
         </div>
 
@@ -53,10 +53,9 @@
                 <i class="fas fa-clock"></i>
                 Your Active Tickets
             </h2>
-            {% if tickets %}
+            {% if active_tickets %}
             <div class="tickets-grid">
-                {% for ticket in tickets %}
-                {% if ticket.status != 'Resolved' and ticket.status != 'Closed' %}
+                {% for ticket in active_tickets %}
                 <div class="ticket-card">
                     <div class="ticket-header">
                         <span class="ticket-id">#{{ ticket.id }}</span>
@@ -64,7 +63,7 @@
                     </div>
                     <h3 class="ticket-title">{{ ticket.title }}</h3>
                     <p class="ticket-description">{{ ticket.description[:100] }}{% if ticket.description|length > 100 %}...{% endif %}</p>
-                    
+
                     <div class="ticket-meta">
                         <span class="ticket-user">
                             <i class="fas fa-user"></i>
@@ -72,7 +71,7 @@
                         </span>
                         <span class="ticket-date">
                             <i class="fas fa-calendar"></i>
-                            {{ ticket.created_at.strftime('%Y-%m-%d') }}
+                            {{ format_date(ticket.created_at_dt, '%Y-%m-%d') }}
                         </span>
                     </div>
                     <div class="ticket-meta">
@@ -85,14 +84,13 @@
                             {{ ticket.category_name or 'Other' }}
                         </span>
                     </div>
-                    
+
                     <div class="ticket-actions">
-                        <a href="{{ url_for('agent_ticket_detail', ticket_id=ticket.id) }}" class="btn btn-sm btn-primary">
+                        <a href="{{ url_for('edit_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-primary">
                             <i class="fas fa-eye"></i> View
                         </a>
                     </div>
                 </div>
-                {% endif %}
                 {% endfor %}
             </div>
             {% else %}
@@ -100,6 +98,61 @@
                 <i class="fas fa-inbox"></i>
                 <h3>No active tickets</h3>
                 <p>You currently have no active tickets assigned to you.</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Completed Tickets Section -->
+        <section class="tickets-section">
+            <h2 class="section-title">
+                <i class="fas fa-check-circle"></i>
+                Your Completed Tickets
+            </h2>
+            {% if completed_tickets %}
+            <div class="tickets-grid">
+                {% for ticket in completed_tickets %}
+                <div class="ticket-card">
+                    <div class="ticket-header">
+                        <span class="ticket-id">#{{ ticket.id }}</span>
+                        <span class="badge badge-status">{{ ticket.status }}</span>
+                    </div>
+                    <h3 class="ticket-title">{{ ticket.title }}</h3>
+                    <p class="ticket-description">{{ ticket.description[:100] }}{% if ticket.description|length > 100 %}...{% endif %}</p>
+
+                    <div class="ticket-meta">
+                        <span class="ticket-user">
+                            <i class="fas fa-user"></i>
+                            {{ ticket.user_name }}
+                        </span>
+                        <span class="ticket-date">
+                            <i class="fas fa-calendar"></i>
+                            {{ format_date(ticket.created_at_dt, '%Y-%m-%d') }}
+                        </span>
+                    </div>
+                    <div class="ticket-meta">
+                        <span class="badge badge-urgency-{{ ticket.urgency|lower|trim }}">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            {{ ticket.urgency }}
+                        </span>
+                        <span class="badge" style="background-color: {{ ticket.category_color or '#6c757d' }}; color: white;">
+                            <i class="fas fa-tag"></i>
+                            {{ ticket.category_name or 'Other' }}
+                        </span>
+                    </div>
+
+                    <div class="ticket-actions">
+                        <a href="{{ url_for('edit_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <h3>No completed tickets</h3>
+                <p>You currently have no completed tickets.</p>
             </div>
             {% endif %}
         </section>

@@ -48,7 +48,7 @@
                         </span>
                         <span class="ticket-date">
                             <i class="fas fa-calendar"></i>
-                            {{ ticket.created_at.strftime('%Y-%m-%d') }}
+                            {{ format_date(ticket.created_at_dt, '%Y-%m-%d') }}
                         </span>
                     </div>
                     
@@ -66,7 +66,7 @@
                     <div class="ticket-meta">
                         <span>
                             <i class="fas fa-archive"></i>
-                            Archived: {{ ticket.updated_at.strftime('%Y-%m-%d') if ticket.updated_at else 'N/A' }}
+                            Archived: {{ format_date(ticket.updated_at_dt, '%Y-%m-%d') }}
                         </span>
                     </div>
                     
@@ -78,7 +78,7 @@
                                 Restore
                             </button>
                         </form>
-                        <form method="POST" action="{{ url_for('delete_permanently', ticket_id=ticket.id) }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('delete_ticket', ticket_id=ticket.id) }}" style="display: inline;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-primary" style="background: var(--gradient-accent);" onclick="return confirm('Are you sure you want to permanently delete this ticket?')">
                                 <i class="fas fa-trash"></i>

@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="admin-container">
-        <!-- Modern Header -->
+        <!-- Header -->
         <header class="admin-header">
             <h1 class="admin-title">
                 <i class="fas fa-tachometer-alt"></i>
@@ -17,8 +17,7 @@
             </h1>
             <div>
                 <a href="{{ url_for('register_agent') }}" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i>
-                    Add Agent
+                    <i class="fas fa-user-plus"></i> Add Agent
                 </a>
             </div>
         </header>
@@ -30,7 +29,7 @@
                 <div class="stat-label">Active Tickets</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">{{ tickets|selectattr("status", "eq", "Resolved")|list|length + tickets|selectattr("status", "eq", "Closed")|list|length }}</div>
+                <div class="stat-number">{{ tickets|selectattr("status", "in", ["Resolved", "Closed"])|list|length }}</div>
                 <div class="stat-label">Completed</div>
             </div>
             <div class="stat-card">
@@ -43,203 +42,128 @@
             </div>
         </div>
 
-        <!-- SLA Summary Stats -->
+        <!-- SLA Summary -->
         <div class="stats-grid">
             <div class="stat-card sla-critical">
-                <div class="stat-number">{{ tickets|selectattr("resolution_breach", "eq", True)|list|length }}</div>
+                <div class="stat-number">{{ sla_summary.resolution_breaches }}</div>
                 <div class="stat-label">Resolution Overdue</div>
             </div>
             <div class="stat-card sla-high">
-                <div class="stat-number">{{ tickets|selectattr("response_breach", "eq", True)|list|length }}</div>
+                <div class="stat-number">{{ sla_summary.response_breaches }}</div>
                 <div class="stat-label">Response Overdue</div>
             </div>
-            <div class="stat-card sla-medium">
-                <div class="stat-number">{{ tickets|selectattr("severity", "eq", "medium")|list|length }}</div>
-                <div class="stat-label">Medium Priority</div>
+            <div class="stat-card sla-high">
+                <div class="stat-number">{{ tickets|selectattr("severity", "eq", "high")|list|length }}</div>
+                <div class="stat-label">High Priority</div>
             </div>
-            <div class="stat-card sla-normal">
-                <div class="stat-number">{{ tickets|selectattr("severity", "eq", "normal")|list|length }}</div>
-                <div class="stat-label">Normal Priority</div>
+            <div class="stat-card sla-critical">
+                <div class="stat-number">{{ tickets|selectattr("severity", "eq", "critical")|list|length }}</div>
+                <div class="stat-label">Critical Priority</div>
             </div>
         </div>
 
-        <!-- Category Filter Section -->
+        <!-- Category Filter -->
         <section class="tickets-section">
-            <h2 class="section-title">
-                <i class="fas fa-filter"></i>
-                Filter by Category
-            </h2>
+            <h2 class="section-title"><i class="fas fa-filter"></i> Filter by Category</h2>
             <div class="category-filters">
                 <a href="{{ url_for('admin_dashboard') }}" class="category-badge" style="background-color: #6c757d;">
-                    <i class="fas fa-list"></i>
-                    All Categories
+                    <i class="fas fa-list"></i> All Categories
                 </a>
                 {% set categories = tickets|map(attribute='category_name')|unique|list %}
-                {% for ticket in tickets %}
-                    {% if ticket.category_name and ticket.category_name not in categories[:categories.index(ticket.category_name)] %}
-                    <a href="{{ url_for('admin_dashboard') }}?category={{ ticket.category_name|urlencode }}" 
-                       class="category-badge" 
-                       style="background-color: {{ ticket.category_color or '#6c757d' }};">
-                        <i class="fas fa-tag"></i>
-                        {{ ticket.category_name }}
+                {% for category in categories %}
+                    {% if category %}
+                    {% set first_ticket = tickets|selectattr('category_name', 'equalto', category)|list|first %}
+                    <a href="{{ url_for('admin_dashboard') }}?category={{ category|urlencode }}"
+                       class="category-badge"
+                       style="background-color: {{ first_ticket.category_color if first_ticket and first_ticket.category_color else '#6c757d' }};">
+                        <i class="fas fa-tag"></i> {{ category }}
                     </a>
                     {% endif %}
                 {% endfor %}
             </div>
         </section>
 
-        <!-- Active Tickets Section -->
+        {% set selected_category = request.args.get('category') %}
+
+        <!-- Active Tickets -->
         <section class="tickets-section">
-            <h2 class="section-title">
-                <i class="fas fa-clock"></i>
-                Active Tickets
-            </h2>
+            <h2 class="section-title"><i class="fas fa-clock"></i> Active Tickets</h2>
             <div class="tickets-grid">
                 {% set active_tickets = tickets|selectattr("status", "ne", "Resolved")|selectattr("status", "ne", "Closed")|list %}
-                {% set selected_category = request.args.get('category') %}
                 {% if active_tickets %}
                     {% for ticket in active_tickets %}
-                    {% if not selected_category or ticket.category_name == selected_category %}
-                    <div class="ticket-card">
-                        <div class="ticket-header">
-                            <span class="ticket-id">#{{ ticket.id }}</span>
-                            <span class="badge badge-status">{{ ticket.status }}</span>
+                        {% if not selected_category or ticket.category_name == selected_category %}
+                        <div class="ticket-card">
+                            <div class="ticket-header">
+                                <span class="ticket-id">#{{ ticket.id }}</span>
+                                <span class="badge badge-status">{{ ticket.status }}</span>
+                            </div>
+                            <h3 class="ticket-title">{{ ticket.title }}</h3>
+                            <p class="ticket-description">{{ ticket.description[:100] }}{% if ticket.description|length > 100 %}...{% endif %}</p>
+                            <div class="ticket-meta">
+                                <span class="ticket-user"><i class="fas fa-user"></i> {{ ticket.user_name }}</span>
+                                <span class="ticket-date"><i class="fas fa-calendar"></i> {{ format_date(ticket.created_at_dt, '%Y-%m-%d') }}</span>
+                            </div>
+                            <div class="ticket-meta">
+                                <span class="badge badge-urgency-{{ ticket.urgency|lower|trim }}"><i class="fas fa-exclamation-triangle"></i> {{ ticket.urgency }}</span>
+                                <span class="badge category-badge" style="background-color: {{ ticket.category_color or '#6c757d' }};"><i class="fas fa-tag"></i> {{ ticket.category_name or 'Other' }}</span>
+                                <span>{% if ticket.assigned_agent_name %}Assigned{% else %}Unassigned{% endif %}</span>
+                            </div>
+                        <a href="{{ url_for('edit_ticket', ticket_id=ticket.id) }}" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> View
+                        </a>
                         </div>
-                        <h3 class="ticket-title">{{ ticket.title }}</h3>
-                        <p class="ticket-description">{{ ticket.description[:100] }}{% if ticket.description|length > 100 %}...{% endif %}</p>
-                        <div class="ticket-meta">
-                            <span class="ticket-user">
-                                <i class="fas fa-user"></i>
-                                {{ ticket.user_name }}
-                            </span>
-                            <span class="ticket-date">
-                                <i class="fas fa-calendar"></i>
-                                {{ ticket.created_at.strftime('%Y-%m-%d') }}
-                            </span>
-                        </div>
-                        <div class="ticket-meta">
-                            <span class="badge badge-urgency-{{ ticket.urgency|lower|trim }}">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                {{ ticket.urgency }}
-                            </span>
-                            <span class="badge category-badge" style="background-color: {{ ticket.category_color or '#6c757d' }};">
-                                <i class="fas fa-tag"></i>
-                                {{ ticket.category_name or 'Other' }}
-                            </span>
-                            <span>{{ ticket.assigned_agent_name or 'Unassigned' }}</span>
-                        </div>
-                        
-                        <div class="form-group">
-                            <form method="POST" action="{{ url_for('assign_agent', ticket_id=ticket.id) }}">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <label class="form-label">Assign Agent</label>
-                                <select name="assigned_agent_id" class="form-control" required>
-                                    <option value="">-- Select Agent --</option>
-                                    {% for agent in agents %}
-                                    <option value="{{ agent.id }}" {% if ticket.assigned_agent_id == agent.id %}selected{% endif %}>
-                                        {{ agent.name }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                                <button type="submit" class="btn btn-primary" style="margin-top: 10px;" onclick="return confirm('Are you sure you want to assign this agent?')">
-                                    <i class="fas fa-user-check"></i>
-                                    Assign Agent
-                                </button>
-                            </form>
-                        </div>
-
-                        <div class="form-group">
-                            <form method="POST" action="{{ url_for('update_status', ticket_id=ticket.id) }}">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <label class="form-label">Update Status</label>
-                                <select name="status" class="form-control">
-                                    <option value="Open" {% if ticket.status == 'Open' %}selected{% endif %}>Open</option>
-                                    <option value="In Progress" {% if ticket.status == 'In Progress' %}selected{% endif %}>In Progress</option>
-                                    <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
-                                    <option value="Closed" {% if ticket.status == 'Closed' %}selected{% endif %}>Closed</option>
-                                </select>
-                                <button type="submit" class="btn btn-secondary" style="margin-top: 10px;">
-                                    <i class="fas fa-sync"></i>
-                                    Update
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    {% endif %}
+                        {% endif %}
                     {% endfor %}
                 {% else %}
-                    <div class="empty-state">
-                        <i class="fas fa-check-circle"></i>
-                        <p>No active tickets found.</p>
-                    </div>
+                    <div class="empty-state"><i class="fas fa-check-circle"></i><p>No active tickets found.</p></div>
                 {% endif %}
             </div>
         </section>
 
-        <!-- Completed Tickets Section -->
+        <!-- Completed Tickets -->
         <section class="tickets-section">
-            <h2 class="section-title">
-                <i class="fas fa-check-circle"></i>
-                Completed Tickets
-            </h2>
+            <h2 class="section-title"><i class="fas fa-check-circle"></i> Completed Tickets</h2>
             <div style="margin-bottom: 20px;">
-                <a href="{{ url_for('archived_tickets') }}" class="btn btn-secondary">
-                    <i class="fas fa-archive"></i>
-                    View Archived Tickets
-                </a>
+                <a href="{{ url_for('archived_tickets') }}" class="btn btn-secondary"><i class="fas fa-archive"></i> View Archived Tickets</a>
             </div>
             <div class="tickets-grid">
-                {% set completed_tickets = tickets|selectattr("status", "eq", "Resolved")|list + tickets|selectattr("status", "eq", "Closed")|list %}
-                {% set selected_category = request.args.get('category') %}
+                {% set completed_tickets = tickets|selectattr("status", "in", ["Resolved", "Closed"])|list %}
                 {% if completed_tickets %}
                     {% for ticket in completed_tickets %}
-                    {% if not selected_category or ticket.category_name == selected_category %}
-                    <div class="ticket-card">
-                        <div class="ticket-header">
-                            <span class="ticket-id">#{{ ticket.id }}</span>
-                            <span class="badge badge-status">{{ ticket.status }}</span>
+                        {% if not selected_category or ticket.category_name == selected_category %}
+                        <div class="ticket-card">
+                            <div class="ticket-header">
+                                <span class="ticket-id">#{{ ticket.id }}</span>
+                                <span class="badge badge-status">{{ ticket.status }}</span>
+                            </div>
+                            <h3 class="ticket-title">{{ ticket.title }}</h3>
+                            <p class="ticket-description">{{ ticket.description[:100] }}{% if ticket.description|length > 100 %}...{% endif %}</p>
+                            <div class="ticket-meta">
+                                <span class="ticket-user"><i class="fas fa-user"></i> {{ ticket.user_name }}</span>
+                                <span class="ticket-date"><i class="fas fa-calendar"></i> {{ format_date(ticket.created_at_dt, '%Y-%m-%d') }}</span>
+                            </div>
+                            <div class="ticket-meta">
+                                <span class="badge badge-urgency-{{ ticket.urgency|lower|trim }}"><i class="fas fa-exclamation-triangle"></i> {{ ticket.urgency }}</span>
+                                <span class="badge category-badge" style="background-color: {{ ticket.category_color or '#6c757d' }};"><i class="fas fa-tag"></i> {{ ticket.category_name or 'Other' }}</span>
+                                <span>{% if ticket.assigned_agent_name %}Assigned{% else %}Unassigned{% endif %}</span>
+                            </div>
+                            <div style="margin-top: 15px;">
+                                <a href="{{ url_for('edit_ticket', ticket_id=ticket.id) }}" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <form method="POST" action="{{ url_for('archive_ticket', ticket_id=ticket.id) }}" style="display: inline; margin-left: 10px;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-secondary" onclick="return confirm('Are you sure you want to archive this ticket?')">
+                                        <i class="fas fa-archive"></i> Archive
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <h3 class="ticket-title">{{ ticket.title }}</h3>
-                        <p class="ticket-description">{{ ticket.description[:100] }}{% if ticket.description|length > 100 %}...{% endif %}</p>
-                        <div class="ticket-meta">
-                            <span class="ticket-user">
-                                <i class="fas fa-user"></i>
-                                {{ ticket.user_name }}
-                            </span>
-                            <span class="ticket-date">
-                                <i class="fas fa-calendar"></i>
-                                {{ ticket.created_at.strftime('%Y-%m-%d') }}
-                            </span>
-                        </div>
-                        <div class="ticket-meta">
-                            <span class="badge badge-urgency-{{ ticket.urgency|lower|trim }}">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                {{ ticket.urgency }}
-                            </span>
-                            <span class="badge category-badge" style="background-color: {{ ticket.category_color or '#6c757d' }};">
-                                <i class="fas fa-tag"></i>
-                                {{ ticket.category_name or 'Other' }}
-                            </span>
-                            <span>{{ ticket.assigned_agent_name or 'Unassigned' }}</span>
-                        </div>
-                        
-                        <div style="margin-top: 15px;">
-                            <form method="POST" action="{{ url_for('archive_ticket', ticket_id=ticket.id) }}" style="display: inline;">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-secondary" onclick="return confirm('Are you sure you want to archive this ticket?')">
-                                    <i class="fas fa-archive"></i>
-                                    Archive
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    {% endif %}
+                        {% endif %}
                     {% endfor %}
                 {% else %}
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>No completed tickets found.</p>
-                    </div>
+                    <div class="empty-state"><i class="fas fa-inbox"></i><p>No completed tickets found.</p></div>
                 {% endif %}
             </div>
         </section>
@@ -250,9 +174,7 @@
         {% if messages %}
             <div class="flash-messages">
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div>
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
                 {% endfor %}
             </div>
         {% endif %}
