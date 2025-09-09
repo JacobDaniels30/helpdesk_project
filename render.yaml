@@ -1,33 +1,49 @@
 services:
   - type: web
-    name: helpdesk-project
+    name: helpdesk-app
     env: python
     plan: free
-    buildCommand: |
-      pip install -r requirements.txt
-    startCommand: gunicorn -w 4 -b 0.0.0.0:$PORT app:app
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
     envVars:
-      - key: FLASK_APP
-        value: app.py
-      - key: SECRET_KEY
-        sync: false
+      # Supabase
       - key: SUPABASE_URL
+        value: $SUPABASE_URL
         sync: false
       - key: SUPABASE_KEY
+        value: $SUPABASE_KEY
         sync: false
       - key: SUPABASE_SERVICE_ROLE
+        value: $SUPABASE_SERVICE_ROLE
         sync: false
+
+      # Flask App
+      - key: FLASK_APP
+        value: app.py
+        sync: false
+      - key: SECRET_KEY
+        value: $SECRET_KEY
+        sync: false
+
+      # Email Configuration
       - key: MAIL_SERVER
+        value: $MAIL_SERVER
         sync: false
       - key: MAIL_PORT
+        value: $MAIL_PORT
         sync: false
       - key: MAIL_USE_TLS
+        value: $MAIL_USE_TLS
         sync: false
       - key: MAIL_USERNAME
+        value: $MAIL_USERNAME
         sync: false
       - key: MAIL_PASSWORD
+        value: $MAIL_PASSWORD
         sync: false
       - key: MAIL_DEFAULT_SENDER_NAME
+        value: $MAIL_DEFAULT_SENDER_NAME
         sync: false
       - key: MAIL_DEFAULT_SENDER_EMAIL
+        value: $MAIL_DEFAULT_SENDER_EMAIL
         sync: false
